@@ -1,138 +1,119 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { CheckCircle2, Circle, MoreHorizontal } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash } from "lucide-react";
 
 type Task = {
-  id: string
-  title: string
-  description: string
-  status: "todo" | "in-progress" | "completed"
-  assignee: {
-    name: string
-    avatar: string
-  }
-  reviewer: {
-    name: string
-    avatar: string
-  }
-}
+  id: string;
+  title: string;
+  description: string;
+  status: "todo" | "in-progress" | "done";
+  assignee: string;
+  reviewer: string;
+};
 
-const mockTasks: Task[] = [
+const initialTasks: Task[] = [
   {
     id: "1",
-    title: "Implement dashboard layout",
-    description: "Create the main dashboard layout with sidebar navigation",
-    status: "completed",
-    assignee: {
-      name: "John Doe",
-      avatar: "/placeholder.svg",
-    },
-    reviewer: {
-      name: "Jane Smith",
-      avatar: "/placeholder.svg",
-    },
+    title: "Implement dashboard",
+    description: "Create main dashboard layout",
+    status: "in-progress",
+    assignee: "John Doe",
+    reviewer: "Jane Smith",
   },
   {
     id: "2",
-    title: "Add task management features",
-    description: "Implement CRUD operations for tasks",
-    status: "in-progress",
-    assignee: {
-      name: "Alice Johnson",
-      avatar: "/placeholder.svg",
-    },
-    reviewer: {
-      name: "Bob Wilson",
-      avatar: "/placeholder.svg",
-    },
+    title: "Add authentication",
+    description: "Set up user authentication flow",
+    status: "todo",
+    assignee: "Jane Smith",
+    reviewer: "John Doe",
   },
-]
+];
 
 export function TaskList() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+  const [tasks, setTasks] = useState(initialTasks);
 
   const toggleTaskStatus = (taskId: string) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId
-          ? {
-              ...task,
-              status: task.status === "completed" ? "todo" : "completed",
-            }
-          : task,
-      ),
-    )
-  }
+    setTasks(
+      tasks.map((task) => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            status: task.status === "done" ? "todo" : "done",
+          };
+        }
+        return task;
+      })
+    );
+  };
 
-  const deleteTask = (taskId: string) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
-  }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "todo":
+        return "default";
+      case "in-progress":
+        return "blue";
+      case "done":
+        return "green";
+      default:
+        return "default";
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {tasks.map((task) => (
-        <div key={task.id} className="flex items-center justify-between rounded-lg border p-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => toggleTaskStatus(task.id)}>
-              {task.status === "completed" ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              ) : (
-                <Circle className="h-5 w-5" />
-              )}
-            </Button>
-            <div>
-              <h3 className="font-medium">{task.title}</h3>
-              <p className="text-sm text-muted-foreground">{task.description}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <Badge
-              variant={task.status === "completed" ? "success" : task.status === "in-progress" ? "warning" : "default"}
-            >
-              {task.status}
-            </Badge>
-            <div className="flex -space-x-2">
-              <Avatar className="border-2 border-background">
-                <AvatarImage src={task.assignee.avatar} />
-                <AvatarFallback>
-                  {task.assignee.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-              <Avatar className="border-2 border-background">
-                <AvatarImage src={task.reviewer.avatar} />
-                <AvatarFallback>
-                  {task.reviewer.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-12"></TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Assignee</TableHead>
+          <TableHead>Reviewer</TableHead>
+          <TableHead className="w-24">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tasks.map((task) => (
+          <TableRow key={task.id}>
+            <TableCell>
+              <Checkbox
+                checked={task.status === "done"}
+                onCheckedChange={() => toggleTaskStatus(task.id)}
+              />
+            </TableCell>
+            <TableCell>{task.title}</TableCell>
+            <TableCell>{task.description}</TableCell>
+            <TableCell>
+              <Badge variant={getStatusColor(task.status)}>{task.status}</Badge>
+            </TableCell>
+            <TableCell>{task.assignee}</TableCell>
+            <TableCell>{task.reviewer}</TableCell>
+            <TableCell>
+              <div className="flex space-x-2">
                 <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
+                  <Edit className="h-4 w-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Edit</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600" onClick={() => deleteTask(task.id)}>
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+                <Button variant="ghost" size="icon">
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 }
-
